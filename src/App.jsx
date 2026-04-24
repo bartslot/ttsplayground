@@ -561,12 +561,9 @@ export default function App() {
         if (message.trim() === DEFAULT_SAMPLE.trim() && fallbackTimeline.length > 0) {
           playTimeline = fallbackTimeline;
         } else {
-          throw alignErr;
+          // Gentle unavailable — play audio without lip sync
+          console.warn("[LipSync] Alignment skipped:", alignErr?.message);
         }
-      }
-
-      if (playTimeline.length === 0) {
-        throw new Error("No visemes were generated for this speech.");
       }
 
       return { audioUrl: url, audioBlob, playTimeline, audioDuration };
