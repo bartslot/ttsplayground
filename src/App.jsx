@@ -327,7 +327,8 @@ export default function App() {
   }, []);
 
   const postTtsRequest = useCallback(async (formData) => {
-    const requestTargets = ["/api/tts", "http://localhost:8001/tts"];
+    const ttsBase = import.meta.env.VITE_TTS_URL ?? "";
+    const requestTargets = ttsBase ? [`${ttsBase}/tts`] : ["/api/tts", "http://localhost:8001/tts"];
 
     let lastError = null;
     for (const target of requestTargets) {
@@ -543,7 +544,8 @@ export default function App() {
         alignForm.append("audio", audioBlob, "generated.wav");
         alignForm.append("transcript", message);
 
-        const alignResponse = await fetch("/gentle/transcriptions?async=false", {
+        const gentleBase = import.meta.env.VITE_GENTLE_URL ?? "/gentle";
+        const alignResponse = await fetch(`${gentleBase}/transcriptions?async=false`, {
           method: "POST",
           body: alignForm
         });
