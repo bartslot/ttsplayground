@@ -299,7 +299,8 @@ export default function App() {
     const lastLogged = { viseme: null };
 
     const tick = () => {
-      const t = (audio.currentTime || (performance.now() - start) / 1000) + LIP_SYNC_LEAD_SECONDS;
+      // Use performance.now() — audio.currentTime is unreliable for streaming wav responses
+      const t = (performance.now() - start) / 1000 + LIP_SYNC_LEAD_SECONDS;
       const nextViseme = findCurrentViseme(playTimeline, t);
       setViseme(nextViseme);
 
