@@ -52,7 +52,7 @@ function resolveVisemeIndex(dictionary, visemeName) {
   return undefined;
 }
 
-export default function Avatar({ visemeState, mouthIntensity = 1, onMeshReport }) {
+export default function Avatar({ visemeState, mouthIntensity = 1, onMeshReport, isReady = true }) {
   const { scene } = useGLTF("/avatar.glb");
   const idle001 = useGLTF("/animations/M_Standing_Idle_001.glb");
   const idle002 = useGLTF("/animations/M_Standing_Idle_002.glb");
@@ -191,7 +191,7 @@ export default function Avatar({ visemeState, mouthIntensity = 1, onMeshReport }
   }, [meshNodes, visemeState, mouthIntensity]);
 
   useFrame((_, delta) => {
-    mixerRef.current?.update(delta);
+    if (isReady) mixerRef.current?.update(delta);
 
     const morphMeshes = meshNodes.filter(
       (mesh) => mesh.morphTargetDictionary && mesh.morphTargetInfluences,

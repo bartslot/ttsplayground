@@ -151,6 +151,9 @@ export default function App() {
   const [preparedVoiceBlob, setPreparedVoiceBlob] = useState(null);
   const [fallbackTimeline, setFallbackTimeline] = useState([]);
   const [cachedSamplePreview, setCachedSamplePreview] = useState(null);
+  const [isReady, setIsReady] = useState(false);
+  const [loadingTime, setLoadingTime] = useState(0);
+  const loadingTimerRef = useRef(0);
 
   const audioRef = useRef(null);
   const frameRef = useRef(0);
@@ -225,6 +228,11 @@ export default function App() {
             audioDuration: typeof savedPreview.audioDuration === "number" ? savedPreview.audioDuration : 0
           });
           setSampleText(savedPreview.text);
+          setIsReady(true);
+          if (loadingTimerRef.current) {
+            clearInterval(loadingTimerRef.current);
+            loadingTimerRef.current = 0;
+          }
         }
       } catch {
         // No saved clone yet. Stay silent.
@@ -235,6 +243,15 @@ export default function App() {
 
     return () => {
       cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    loadingTimerRef.current = window.setInterval(() => {
+      setLoadingTime((t) => t + 0.1);
+    }, 100);
+    return () => {
+      if (loadingTimerRef.current) clearInterval(loadingTimerRef.current);
     };
   }, []);
 
@@ -609,6 +626,11 @@ export default function App() {
         audioDuration: result.audioDuration
       };
       setCachedSamplePreview(preview);
+      setIsReady(true);
+      if (loadingTimerRef.current) {
+        clearInterval(loadingTimerRef.current);
+        loadingTimerRef.current = 0;
+      }
 
       void (async () => {
         const current = await loadVoiceCacheFromDb();
@@ -714,7 +736,7 @@ export default function App() {
           <gridHelper args={[8, 24, "#6a7f8f", "#9bb0bf"]} position={[0, 0, 0]} />
           <Suspense fallback={null}>
             <group>
-              <Avatar visemeState={viseme} mouthIntensity={mouthIntensity} />
+              <Avatar visemeState={viseme} mouthIntensity={mouthIntensity} isReady={isReady} />
               <mesh
                 position={[0, 1.55, 0.12]}
                 onClick={(event) => {
@@ -730,6 +752,12 @@ export default function App() {
           </Suspense>
           <OrbitControls ref={controlsRef} makeDefault enablePan={false} target={[0, 1.4, 0]} minDistance={1.2} maxDistance={6.5} />
         </Canvas>
+
+        {!isReady && (
+          <div className="loading-overlay" aria-live="polite">
+            <span className="loading-timer">{loadingTime.toFixed(1)}s</span>
+          </div>
+        )}
 
         <div className="hud" aria-label="Voice controls">
           <div className="hud__panel">

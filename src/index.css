@@ -46,6 +46,22 @@ input {
   inset: 0;
 }
 
+.loading-overlay {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.loading-timer {
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  color: rgba(0, 0, 0, 0.35);
+  letter-spacing: 0.04em;
+}
+
 .hud {
   position: absolute;
   inset: 0;
