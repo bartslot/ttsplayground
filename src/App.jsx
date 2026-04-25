@@ -3,6 +3,7 @@ import { Canvas } from "@react-three/fiber";
 import { Environment, OrbitControls } from "@react-three/drei";
 import Avatar from "./Avatar";
 import { decodeAudioBlob, findLeadingVoiceStart, prepareVoicePromptBlobFromAudioBuffer } from "./audioUtils";
+import { buildLocalVisemeTimeline } from "./lipSyncLocal";
 import recIcon from "./assets/rec.svg";
 import playIcon from "./assets/play.svg";
 import pauseIcon from "./assets/pause.svg";
@@ -544,12 +545,10 @@ export default function App() {
 
       const audioBlob = await response.blob();
       let audioDuration = 0;
-      if (import.meta.env.DEV) {
-        try {
-          audioDuration = (await decodeAudioBlob(audioBlob)).duration;
-        } catch {
-          audioDuration = 0;
-        }
+      try {
+        audioDuration = (await decodeAudioBlob(audioBlob)).duration;
+      } catch {
+        audioDuration = 0;
       }
       const url = URL.createObjectURL(audioBlob);
       objectUrlsRef.current.add(url);
@@ -575,12 +574,11 @@ export default function App() {
 
         const alignment = await alignResponse.json();
         playTimeline = buildVisemeTimeline(alignment);
-      } catch (alignErr) {
+      } catch {
         if (message.trim() === DEFAULT_SAMPLE.trim() && fallbackTimeline.length > 0) {
           playTimeline = fallbackTimeline;
         } else {
-          // Gentle unavailable — play audio without lip sync
-          console.warn("[LipSync] Alignment skipped:", alignErr?.message);
+          playTimeline = buildLocalVisemeTimeline(message, audioDuration);
         }
       }
 
