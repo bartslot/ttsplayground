@@ -585,7 +585,7 @@ export default function App() {
       return null;
     }
 
-    if (cachedSamplePreview?.text === message && cachedSamplePreview.timeline.length > 0) {
+    if (cachedSamplePreview?.text === message && cachedSamplePreview.audioBlob) {
       return cachedSamplePreview;
     }
 
@@ -635,7 +635,7 @@ export default function App() {
   }, [bakeSpeech, cachedSamplePreview, isPreparingSample, preparedVoiceBlob, sampleText]);
 
   const playCachedPreview = async (preview) => {
-    if (!preview?.audioBlob || !Array.isArray(preview.timeline) || preview.timeline.length === 0) return null;
+    if (!preview?.audioBlob) return null;
 
     const audioUrl = URL.createObjectURL(preview.audioBlob);
     objectUrlsRef.current.add(audioUrl);
@@ -650,7 +650,7 @@ export default function App() {
     if (isBaking || isClonePlaying) return;
     const text = preparedVoiceBlob ? sampleText : DEFAULT_PROMPT;
     if (preparedVoiceBlob) {
-      const cached = cachedSamplePreview?.text === text.trim() && cachedSamplePreview.timeline.length > 0 ? cachedSamplePreview : await getSamplePreview(text);
+      const cached = cachedSamplePreview?.text === text.trim() && cachedSamplePreview.audioBlob ? cachedSamplePreview : await getSamplePreview(text);
       if (cached) {
         await playCachedPreview(cached);
         return;
@@ -667,7 +667,7 @@ export default function App() {
   };
 
   const handlePlaySample = async () => {
-    if (isBaking || isPreparingSample) return;
+    if (isBaking) return;
 
     if (isClonePlaying) {
       stopPlayback();
@@ -676,7 +676,7 @@ export default function App() {
 
     try {
       const text = sampleText.trim();
-      const cached = cachedSamplePreview?.text === text && cachedSamplePreview.timeline.length > 0 ? cachedSamplePreview : await getSamplePreview(text);
+      const cached = cachedSamplePreview?.text === text && cachedSamplePreview.audioBlob ? cachedSamplePreview : await getSamplePreview(text);
 
       if (cached) {
         await playCachedPreview(cached);
@@ -748,7 +748,7 @@ export default function App() {
                 type="button"
                 className="icon-button icon-button--play"
                 onClick={handlePlaySample}
-                disabled={isBaking || isPreparingSample}
+                disabled={isBaking}
                 aria-label={isClonePlaying ? "Stop playback" : "Play sample"}
                 title={isClonePlaying ? "Stop playback" : "Play sample"}
               >
