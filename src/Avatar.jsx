@@ -2,6 +2,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import { AnimationMixer, Box3, LoopRepeat, Vector3 } from "three";
+import { useEmotion } from "./useEmotion";
+import { useEyeAnimation } from "./useEyeAnimation";
 
 const visemeAliases = {
   viseme_ah: ["viseme_aa", "viseme_AA"],
@@ -52,7 +54,7 @@ function resolveVisemeIndex(dictionary, visemeName) {
   return undefined;
 }
 
-export default function Avatar({ visemeState, mouthIntensity = 1, onMeshReport, isReady = true }) {
+export default function Avatar({ visemeState, mouthIntensity = 1, onMeshReport, isReady = true, emotion = "neutral" }) {
   const { scene } = useGLTF("/avatar.glb");
   const idle001 = useGLTF("/animations/M_Standing_Idle_001.glb");
   const idle002 = useGLTF("/animations/M_Standing_Idle_002.glb");
@@ -75,6 +77,9 @@ export default function Avatar({ visemeState, mouthIntensity = 1, onMeshReport, 
 
     return meshes;
   }, [scene]);
+
+  const emotionTargets = useEmotion(meshNodes, emotion);
+  useEyeAnimation(meshNodes);
 
   const meshReports = useMemo(
     () =>
@@ -177,18 +182,17 @@ export default function Avatar({ visemeState, mouthIntensity = 1, onMeshReport, 
     );
 
     morphMeshes.forEach((mesh) => {
-      const targets = new Array(mesh.morphTargetInfluences.length).fill(0);
+      const emotionBase = emotionTargets.get(mesh) ?? new Array(mesh.morphTargetInfluences.length).fill(0);
+      const targets = [...emotionBase];
       const index = resolveVisemeIndex(mesh.morphTargetDictionary, visemeState);
-
       if (index !== undefined) {
         targets[index] = mouthIntensity;
       }
-
       nextTargets.set(mesh, targets);
     });
 
     targetInfluencesRef.current = nextTargets;
-  }, [meshNodes, visemeState, mouthIntensity]);
+  }, [meshNodes, visemeState, mouthIntensity, emotionTargets]);
 
   useFrame((_, delta) => {
     if (isReady) mixerRef.current?.update(delta);
