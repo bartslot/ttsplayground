@@ -138,6 +138,7 @@ async function loadVoiceCacheFromDb() {
 
 export default function App() {
   const [viseme, setViseme] = useState(null);
+  const [emotion, setEmotion] = useState("neutral");
   const [voiceError, setVoiceError] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -280,6 +281,7 @@ export default function App() {
     }
     bakedAudioRef.current?.pause?.();
     setViseme(null);
+    setEmotion("neutral");
     setIsClonePlaying(false);
   };
 
@@ -313,6 +315,7 @@ export default function App() {
       console.groupEnd();
     }
 
+    setEmotion("happy");
     const start = performance.now();
     const lastLogged = { viseme: null };
 
@@ -331,6 +334,7 @@ export default function App() {
         frameRef.current = requestAnimationFrame(tick);
       } else {
         setViseme(null);
+        setEmotion("neutral");
       }
     };
 
@@ -734,7 +738,7 @@ export default function App() {
           <gridHelper args={[8, 24, "#6a7f8f", "#9bb0bf"]} position={[0, 0, 0]} />
           <Suspense fallback={null}>
             <group>
-              <Avatar visemeState={viseme} mouthIntensity={mouthIntensity} isReady={isReady} />
+              <Avatar visemeState={viseme} mouthIntensity={mouthIntensity} isReady={isReady} emotion={emotion} />
               <mesh
                 position={[0, 1.55, 0.12]}
                 onClick={(event) => {
