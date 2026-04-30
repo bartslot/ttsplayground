@@ -79,7 +79,6 @@ export default function Avatar({ visemeState, mouthIntensity = 1, onMeshReport, 
   }, [scene]);
 
   const emotionTargets = useEmotion(meshNodes, emotion);
-  useEyeAnimation(meshNodes);
 
   const meshReports = useMemo(
     () =>
@@ -216,6 +215,9 @@ export default function Avatar({ visemeState, mouthIntensity = 1, onMeshReport, 
       }
     });
   });
+
+  // Must run AFTER main useFrame so eye writes are not overwritten by the lerp pass
+  useEyeAnimation(meshNodes);
 
   return (
     <group ref={rootRef}>
